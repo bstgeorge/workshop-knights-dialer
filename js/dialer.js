@@ -7,6 +7,12 @@ export default {
 
 // ****************************
 
+var dialpad = [
+	[1, 8, 3],
+	[6, 0, 4],
+	[7, 2, 9]
+];
+
 function reachableKeys(startingDigit) {
 	// TODO: return which digits a Knight's move
 	// can hop to from a given starting digit/key
@@ -17,11 +23,58 @@ function reachableKeys(startingDigit) {
 	return [];
 }
 
-function countPaths(startingDigit,hopCount) {
+function countPaths(startingDigit, hopCount, queue = []) {
 	// TODO: given the digit/key to start from and
 	// the number of hops to take, return a count
 	// of all the possible paths that could be
 	// traversed
+	// find location of starting digit
+	// let queue = [];
+	// if hopCount > 0, keep adding possible jumps to queue
+	let pathCount = 0;
+	if (hopCount > 0) {
+		for (let r = 0; r <= 2; r++) {
+			for (let c = 0; c <= 2; c++) {
+				if (startingDigit === dialpad[r][c]) {
+					// starting digit found
+					// add adjacent cells
+					// left
+					if (c >= 1) {
+						queue.push(dialpad[r][c - 1])
+						pathCount++;
+					}
+					// right
+					if (c <= 1) {
+						queue.push(dialpad[r][c + 1])
+						pathCount++;
+					}
+					// up
+					if (r >= 1 && startingDigit !== 0) {
+						queue.push(dialpad[r - 1][c])
+						pathCount++
+					}
+					// down
+					if (r <= 1 && startingDigit !== 0) {
+						queue.push(dialpad[r + 1][c])
+						pathCount++;
+					}
+					if (startingDigit === 8 || startingDigit === 2) {
+						queue.pop();
+						pathCount--;
+					}
+				}
+			}
+		}
+	}
+	console.log('queue: ', queue)
+	// base case
+	if (queue.length === 0) {
+		return pathCount;
+	} else {
+	// non base case
+		pathCount += countPaths(queue.shift(), --hopCount, queue)
+		return pathCount;
+	}
 	return 0;
 }
 
