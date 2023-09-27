@@ -26,6 +26,10 @@ var nearByKeys = [
 	[2, 4]
 ]
 
+let allPaths = [];
+let acyclicPathCount = 0;
+let acyclicPaths = [];
+
 function reachableKeys(startingDigit) {
 	// TODO: return which digits a Knight's move
 	// can hop to from a given starting digit/key
@@ -66,6 +70,8 @@ function countPaths(startingDigit, hopCount, queue = []) {
 		}
 	}
 
+	buildTree = memoize(buildTree);
+
 	let countTerminalNodes = (currentNode) => {
 		let count = 0;
 		// base case
@@ -92,61 +98,66 @@ function countPaths(startingDigit, hopCount, queue = []) {
 		return count;
 	}
 
+	let trimTree = (currentNode, currentPath = [currentNode.value]) => {
+		currentPath.map((element) => {
+			for (let i = 0; i < currentNode.children.length; i++) {
+				if (element === currentNode.children[i].value) {
+					currentNode.children.splice(i, 1);
+				}
+			}
+		})
+		// base case
+		if (currentNode.children.length === 0) {
+			return;
+		}
+		for (let child of currentNode.children) {
+			trimTree(child, currentPath.concat(currentNode.value));
+		}
+	}
+
+	let getPaths = (currentNode, currentPath = []) => {
+		// base case
+		currentPath = currentPath.concat(currentNode.value)
+		if (currentNode.children.length === 0) {
+			allPaths.push(currentPath);
+			return;
+		}
+		for (let child of currentNode.children) {
+			getPaths(child, currentPath);
+		}
+	}
+
+	let getAcyclicPaths = (currentNode, currentPath = []) => {
+		currentPath.push(currentNode.value);
+		if (currentNode.children.length === 0) {
+			acyclicPaths.push(currentPath);
+			return;
+		}
+		for (let child of currentNode.children) {
+			getAcyclicPaths(child, currentPath);
+		}
+		console.log('acyclic paths: ', acyclicPaths)
+	}
+
 	let root = new TreeNode(startingDigit);
 	buildTree(root, hopCount);
-	console.log('root: ', root);
-	let terminalNodes = countTerminalNodes(root);
+	// console.log('root: ', root);
 	let totalNodes = countTotalNodes(root);
-	console.log('Terminal Node Count: ', terminalNodes);
-	console.log('Total Node Count: ', totalNodes);
-	// // find location of starting digit
-	// // let queue = [];
-	// // if hopCount > 0, keep adding possible jumps to queue
-	// let pathCount = 0;
-	// if (hopCount > 0) {
-	// 	for (let r = 0; r <= 2; r++) {
-	// 		for (let c = 0; c <= 2; c++) {
-	// 			if (startingDigit === dialpad[r][c]) {
-	// 				// starting digit found
-	// 				// add adjacent cells
-	// 				// left
-	// 				if (c >= 1) {
-	// 					queue.push(dialpad[r][c - 1])
-	// 					pathCount++;
-	// 				}
-	// 				// right
-	// 				if (c <= 1) {
-	// 					queue.push(dialpad[r][c + 1])
-	// 					pathCount++;
-	// 				}
-	// 				// up
-	// 				if (r >= 1 && startingDigit !== 0) {
-	// 					queue.push(dialpad[r - 1][c])
-	// 					pathCount++
-	// 				}
-	// 				// down
-	// 				if (r <= 1 && startingDigit !== 0) {
-	// 					queue.push(dialpad[r + 1][c])
-	// 					pathCount++;
-	// 				}
-	// 				if (startingDigit === 8 || startingDigit === 2) {
-	// 					queue.pop();
-	// 					pathCount--;
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// }
-	// console.log('queue: ', queue)
-	// // base case
-	// if (queue.length === 0) {
-	// 	return pathCount;
-	// } else {
-	// // non base case
-	// 	pathCount += countPaths(queue.shift(), --hopCount, queue)
-	// 	return pathCount;
-	// }
-	return terminalNodes;
+	let terminalNodes = countTerminalNodes(root);
+	// console.log('total nodes: ', totalNodes);
+	// console.log('terminal nodes: ', terminalNodes);
+	let trimmedTree = new TreeNode(startingDigit);
+	buildTree(trimmedTree, hopCount);
+	trimTree(trimmedTree);
+	// console.log('trimmedTree: ', trimmedTree);
+	let trimmedTotalNodes = countTotalNodes(trimmedTree);
+	let trimmedTerminalNodes = countTerminalNodes(trimmedTree);
+	// console.log('trimmed total nodes: ', trimmedTotalNodes);
+	// console.log('trimmed terminal nodes: ', trimmedTerminalNodes);
+	getPaths(trimmedTree);
+	// console.log('allPaths: ', allPaths)
+
+	return [terminalNodes];
 }
 
 function listAcyclicPaths(startingDigit) {
@@ -159,5 +170,16 @@ function listAcyclicPaths(startingDigit) {
 	//   [4, 3, 8, 1, 6, 0],
 	//   ...
 	// ]
-	return [];
+	return [allPaths];
+}
+
+function memoize (fn) {
+	let cache = {};
+	console.log(cache)
+	return function memoized(currentNode, hopCount) {
+		if (!cache[`${currentNode}:${hopCount}`]) {
+			cache[`${currentNode}:${hopCount}`] = fn(currentNode, hopCount);
+		}
+		return cache[`${currentNode}:${hopCount}`]
+	}
 }
