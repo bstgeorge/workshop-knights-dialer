@@ -70,7 +70,7 @@ function countPaths(startingDigit, hopCount, queue = []) {
 		}
 	}
 
-	buildTree = memoize(buildTree);
+	// buildTree = memoize(buildTree);
 
 	let countTerminalNodes = (currentNode) => {
 		let count = 0;
@@ -139,25 +139,40 @@ function countPaths(startingDigit, hopCount, queue = []) {
 		console.log('acyclic paths: ', acyclicPaths)
 	}
 
-	let root = new TreeNode(startingDigit);
-	buildTree(root, hopCount);
+	let countNodes = (startingDigit, hopCount) => {
+		let count = 0;
+		// base case
+		if (hopCount === 0) {
+			return 1;
+		}
+		hopCount--;
+		for (let child of nearByKeys[startingDigit]) {
+			count += countNodes(child, hopCount);
+		}
+		return count;
+	}
+
+	// let root = new TreeNode(startingDigit);
+	// buildTree(root, hopCount);
 	// console.log('root: ', root);
-	let totalNodes = countTotalNodes(root);
-	let terminalNodes = countTerminalNodes(root);
+	// let totalNodes = countTotalNodes(root);
+	// let terminalNodes = countTerminalNodes(root);
 	// console.log('total nodes: ', totalNodes);
 	// console.log('terminal nodes: ', terminalNodes);
-	let trimmedTree = new TreeNode(startingDigit);
-	buildTree(trimmedTree, hopCount);
-	trimTree(trimmedTree);
+	// let trimmedTree = new TreeNode(startingDigit);
+	// buildTree(trimmedTree, hopCount);
+	// trimTree(trimmedTree);
 	// console.log('trimmedTree: ', trimmedTree);
-	let trimmedTotalNodes = countTotalNodes(trimmedTree);
-	let trimmedTerminalNodes = countTerminalNodes(trimmedTree);
+	// let trimmedTotalNodes = countTotalNodes(trimmedTree);
+	// let trimmedTerminalNodes = countTerminalNodes(trimmedTree);
 	// console.log('trimmed total nodes: ', trimmedTotalNodes);
 	// console.log('trimmed terminal nodes: ', trimmedTerminalNodes);
-	getPaths(trimmedTree);
+	// getPaths(trimmedTree);
 	// console.log('allPaths: ', allPaths)
 
-	return [terminalNodes];
+	countNodes = memoize(countNodes);
+	return(countNodes(startingDigit, hopCount))
+
 }
 
 function listAcyclicPaths(startingDigit) {
