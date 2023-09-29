@@ -26,6 +26,19 @@ var nearByKeys = [
 	[2, 4]
 ]
 
+var comingFrom = [
+	[4, 6],
+	[6, 8],
+	[7, 9],
+	[4, 8],
+	[3, 9, 0],
+	[],
+	[1, 7, 0],
+	[2, 6],
+	[1, 3],
+	[2, 4]
+]
+
 let allPaths = [];
 let acyclicPathCount = 0;
 let acyclicPaths = [];
@@ -147,18 +160,38 @@ function countPaths(startingDigit, hopCount, queue = []) {
 		}
 		hopCount--;
 		for (let child of nearByKeys[startingDigit]) {
+			// don't decrement for each child occurence.  Needs to happen outside of for loop.
 			count += countNodes(child, hopCount);
 		}
 		return count;
 	}
 
-	// let root = new TreeNode(startingDigit);
-	// buildTree(root, hopCount);
-	// console.log('root: ', root);
-	// let totalNodes = countTotalNodes(root);
-	// let terminalNodes = countTerminalNodes(root);
-	// console.log('total nodes: ', totalNodes);
-	// console.log('terminal nodes: ', terminalNodes);
+	// perform tabulation
+
+	let tabulation = (startingDigit, hopCount) => {
+		let counter = Array(10).fill(1);
+		let buckets = Array(10);
+		for (let jump = 0; jump < hopCount; jump++) {
+			buckets.fill(0);
+			for (let n = 0;  n < 10; n++) {
+				for (let element of comingFrom[n]) {
+					buckets[n] += counter[element];
+				}
+			}
+			counter = [...buckets];
+		}
+		console.log(buckets);
+	}
+
+	tabulation(startingDigit, hopCount);
+
+	let root = new TreeNode(startingDigit);
+	buildTree(root, hopCount);
+	console.log('root: ', root);
+	let totalNodes = countTotalNodes(root);
+	let terminalNodes = countTerminalNodes(root);
+	console.log('total nodes: ', totalNodes);
+	console.log('terminal nodes: ', terminalNodes);
 	// let trimmedTree = new TreeNode(startingDigit);
 	// buildTree(trimmedTree, hopCount);
 	// trimTree(trimmedTree);
